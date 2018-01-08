@@ -2,17 +2,23 @@
 
 ## percona image and version
 ## ref: https://hub.docker.com/r/percona/percona-xtradb-cluster/tags/
-imageRepo: "percona/percona-xtradb-cluster"
-imageTag: "5.7.19"
+image:
+  repository: "percona/percona-xtradb-cluster"
+  tag: "5.7.19"
+  pullPolicy: IfNotPresent
+
+# Desired number of members of xtradb cluster
 replicas: 3
 
 ## Specify password for root user
+## If commented out will set a random password which may break upgrades
 ##
-mysqlRootPassword: not-a-secure-password
+# mysqlRootPassword: not-a-secure-password
 
 ## Specify password for xtradb backup user
+## If commented out will set a random password which may break upgrades
 ##
-xtraBackupPassword: replicate-my-data
+# xtraBackupPassword: replicate-my-data
 
 ## Uncomment to create a database user
 ##
@@ -26,12 +32,6 @@ xtraBackupPassword: replicate-my-data
 ## Uncomment to Create a database
 ##
 # mysqlDatabase: test
-
-## Specify an imagePullPolicy (Required)
-## It's recommended to change this to 'Always' if the image tag is 'latest'
-## ref: http://kubernetes.io/docs/user-guide/images/#updating-images
-##
-imagePullPolicy: Always
 
 ## Persist data to a persitent volume
 persistence:
@@ -50,28 +50,28 @@ persistence:
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
-#resources:
+# resources:
 #  requests:
 #    memory: 256Mi
 #    cpu: 100m
 
-## When set to true will utilize
-metricsExporter: false
-logTail: true
+## Custom percona config files will be placed in /etc/mysql/conf.d
+## default node.cnf is found in files/node.cnf and will be used if
+## a custom node.cnf is not specified.
+#
+# configFiles:
+#  node.cnf: |+
+#    [mysqld]
+#    datadir=/var/lib/mysql
+#    default_storage_engine=InnoDB
+#  foo.cnf: |+
+#    ...
+#    ...
 
-configFiles:
-  node.cnf: |+
-    [mysqld]
-    datadir=/var/lib/mysql
-    default_storage_engine=InnoDB
-    binlog_format=ROW
-    innodb_flush_log_at_trx_commit  = 0
-    innodb_flush_method             = O_DIRECT
-    innodb_file_per_table           = 1
-    innodb_autoinc_lock_mode=2
-    bind_address = 0.0.0.0
-    wsrep_slave_threads=2
-    wsrep_cluster_address=gcomm://
-    wsrep_provider=/usr/lib/galera3/libgalera_smm.so
-    wsrep_cluster_name=galera
-    wsrep_sst_method=xtrabackup-v2
+## When set to true will create sidecar for `prom/mysqld-exporter`
+#
+metricsExporter: false
+
+## When set to true will create sidecar to tail mysql log
+#
+logTail: true

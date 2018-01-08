@@ -1,11 +1,22 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ template "percona.fullname" . }}-config-files
+  name: {{ template "percona-xtradb-cluster.fullname" . }}-config-files
   labels:
-    app: {{ template "percona.fullname" . }}
+    app: {{ template "percona-xtradb-cluster.fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 data:
+{{- if .Values.configFiles }}
 {{ toYaml .Values.configFiles | indent 2 }}
+{{ if not (index .Values.configFiles "node.cnf") }}
+  node.cnf: | 
+  {{- range .Files.Lines "files/node.cnf" }}
+  {{ . | indent 2 }}{{ end }}
+{{ end }}
+{{ else }}
+  node.cnf: | 
+  {{- range .Files.Lines "files/node.cnf" }}
+  {{ . | indent 2 }}{{ end }}
+{{ end }}
